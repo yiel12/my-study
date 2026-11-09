@@ -346,3 +346,20 @@ Persistent data test
 ```
 
 컨테이너를 삭제해도 named volume은 별도로 남아 데이터를 유지했다.
+
+
+- [x] 이번 미션 테스트 컨테이너 정리
+
+### 테스트 컨테이너 정리 및 Compose 확인
+
+```bash
+docker rm -f volume-second mission-web-bind mission-web-8080 ubuntu-lab priceless_pare
+docker ps -a
+docker volume ls --filter name=mission-data-20261109
+docker compose version
+```
+
+이번 미션의 테스트 컨테이너 5개를 정리했다. 기존 `my-web-server`는 7일 전에 생성된 중지 상태의 컨테이너로, 이번 실습에서 변경하거나 삭제하지 않았다. named volume `mission-data-20261109`는 컨테이너 정리 후에도 목록에 남아 있다.
+
+Compose 버전: `Docker Compose version v5.6.1`
+
