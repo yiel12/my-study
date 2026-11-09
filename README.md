@@ -100,3 +100,55 @@ This message shows that your installation appears to be working correctly.
 ```
 
 출력에서 Docker 데몬이 `hello-world` 이미지를 내려받고, 컨테이너를 생성해 실행한 것을 확인했다.
+
+- [x] `hello-world`와 Ubuntu 컨테이너 실행
+- [x] Ubuntu에서 `attach`, `exec`, `exit` 차이 확인
+
+### Ubuntu 컨테이너와 셸 연결 방식 확인
+
+```bash
+docker run -dit --name ubuntu-lab ubuntu bash
+docker ps --filter name=ubuntu-lab
+```
+
+컨테이너 `ubuntu-lab`이 `Up` 상태인 것을 확인했다.
+
+```bash
+docker attach ubuntu-lab
+```
+
+컨테이너 안에서 `pwd`, `ls`, `echo`를 실행했다. Ctrl+P, Ctrl+Q로 연결을 분리한 뒤 `docker ps`에서 컨테이너가 계속 `Up` 상태인 것을 확인했다.
+
+```bash
+docker exec -it ubuntu-lab bash
+pwd
+ls
+echo "hello from exec shell"
+exit
+docker ps --filter name=ubuntu-lab
+```
+
+`exec`로 연 별도 Bash에서 `exit`한 뒤에도 주 컨테이너는 `Up` 상태였다.
+
+```bash
+docker attach ubuntu-lab
+echo "exiting the main shell"
+exit
+docker ps -a --filter name=ubuntu-lab
+```
+
+주 Bash에서 `exit`한 뒤 컨테이너 상태가 `Exited (0)`으로 바뀌었다.
+
+```bash
+docker start -ai ubuntu-lab
+pwd
+/
+ls
+bin   dev  home  lib64  mnt  proc  run   srv  tmp  var
+boot  etc  lib   media  opt  root  sbin  sys  usr
+echo "Ubuntu commands verified"
+Ubuntu commands verified
+exit
+```
+
+`attach`는 컨테이너의 주 프로세스 입출력에 연결한다. 연결만 분리하면 주 프로세스가 계속 실행되고, 주 Bash에서 `exit`하면 컨테이너가 종료된다. `exec`는 실행 중인 컨테이너에 별도 프로세스(여기서는 Bash)를 추가하며, 그 Bash에서 `exit`해도 주 프로세스는 계속 실행된다.
