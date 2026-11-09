@@ -56,3 +56,25 @@
 - 권한 숫자 표기:
 - 볼륨으로 데이터를 유지하는 방법:
 - 호스트 포트 충돌 진단 순서:
+
+
+## GitHub 기록 추가
+
+- [x] 보너스: GitHub SSH 인증 확인
+
+### GitHub SSH 설정 및 README 게시
+
+- `~/.ssh` 폴더가 없음을 확인하고 Ed25519 키를 생성했다.
+- 공개키를 GitHub 계정에 등록했다. 키 내용과 암호는 기록하지 않는다.
+- `ssh -T git@github.com` 결과: `Hi yiel12! You've successfully authenticated, but GitHub does not provide shell access.`
+- HTTPS 주소로 push했을 때 비밀번호 인증이 지원되지 않아 실패했다.
+- 원격 주소를 SSH 방식으로 변경하고 push를 다시 실행해 성공했다.
+- 원격 주소: `git@github.com:yiel12/my-study.git`
+- README 첫 커밋 `25ce4d2`가 `main` 브랜치에 게시됐다.
+
+#### 트러블슈팅: HTTPS push 인증 실패
+
+- 문제: GitHub가 HTTPS push에서 비밀번호 인증을 거부했다.
+- 원인: 원격 주소가 HTTPS였고, GitHub는 Git 작업의 계정 비밀번호 인증을 지원하지 않는다.
+- 확인: 인증 오류에 `Password authentication is not supported for Git operations`가 표시됐다.
+- 해결: SSH 키를 등록하고 연결을 확인한 뒤 원격 주소를 SSH로 바꾸어 push했다.
