@@ -13,7 +13,7 @@
 - [ ] 컨테이너 `attach`와 `exec` 차이 확인
 - [X] Dockerfile 작성 및 커스텀 웹 서버 이미지 빌드
 - [X] 포트 매핑 후 브라우저 또는 `curl`로 접속 확인
-- [ ] 바인드 마운트 파일 변경 반영 확인
+- [X] 바인드 마운트 파일 변경 반영 확인
 - [ ] 컨테이너 삭제 후 named volume 데이터 유지 확인
 - [ ] Git 설정과 VS Code/GitHub 연동 확인
 - [ ] 보너스: Compose 단일 서비스 실행
@@ -290,3 +290,26 @@ Content-Type: text/html
 ```
 
 호스트 포트 `8080` 요청이 컨테이너 포트 `80`으로 전달되고, NGINX가 저장소의 `index.html`을 반환했다. 
+
+- [x] 바인드 마운트 파일 변경 반영 확인
+
+### 바인드 마운트와 호스트 파일 변경 반영
+
+기존 `mission-web-8080`을 중지하고, 저장소의 `index.html`을 NGINX 컨테이너 경로에 읽기 전용으로 연결했다.
+
+```bash
+docker stop mission-web-8080
+docker run -d --name mission-web-bind -p 8080:80 --mount type=bind,source="$(pwd)/index.html",target=/usr/share/nginx/html/index.html,readonly my-study-web:1.0
+docker inspect --format '{{range .Mounts}}{{.Type}} destination={{.Destination}} read-write={{.RW}}{{end}}' mission-web-bind
+```
+
+```text
+bind destination=/usr/share/nginx/html/index.html read-write=false
+```
+
+호스트 파일을 수정하기 전 `curl http://localhost:8080`에서 기존 페이지와 `HTTP/1.1 200 OK`를 확인했다. 호스트의 `index.html`을 수정하고 다시 확인하자 새 내용이 즉시 표시됐다. 이미지를 다시 빌드하지 않았다.
+
+```html
+<h1>안녕, 바인드 마운트!</h1>
+<p>호스트 파일 수정이 컨테이너에 바로 반영됐습니다.</p>
+```
