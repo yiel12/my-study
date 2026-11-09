@@ -6,8 +6,8 @@
 
 ## 수행 체크리스트
 
-- [ ] 터미널 기본 명령과 경로 확인
-- [ ] 파일 및 디렉터리 권한 확인·변경
+- [X] 터미널 기본 명령과 경로 확인
+- [X] 파일 및 디렉터리 권한 확인·변경
 - [ ] Docker 버전과 엔진 상태 확인
 - [ ] `hello-world`와 Ubuntu 컨테이너 실행
 - [ ] 컨테이너 `attach`와 `exec` 차이 확인
@@ -24,10 +24,10 @@
 
 ## 실행 환경
 
-- OS:
-- 셸/터미널:
-- Docker 버전:
-- Git 버전:
+- OS: Ubuntu 26.04.1 LTS (WSL)
+- 셸/터미널: WSL Bash
+- Docker 버전: 9.9.2 (build a82e528)
+- Git 버전: 2.53.0
 
 ## 수행 로그
 
@@ -194,3 +194,51 @@ docker ps -a --filter name=ubuntu-lab
 ```
 
 `ubuntu-lab`은 중지됐으며 최종 상태는 `Exited (137)`이었다. 기존 `my-web-server` 컨테이너는 그대로 두었다.
+
+### 터미널 기본 조작 및 경로 확인
+
+작업 폴더: `/home/yiel12/workstation-mission-practice`
+
+```bash
+pwd
+# /home/yiel12/workstation-mission-practice
+
+whoami
+# yiel12
+
+mkdir terminal-demo
+touch terminal-demo/note.txt
+printf 'Hello from the terminal\n' > terminal-demo/note.txt
+
+cat terminal-demo/note.txt
+# Hello from the terminal
+
+cp terminal-demo/note.txt note-copy.txt
+mv note-copy.txt note-renamed.txt
+ls -la
+rm note-renamed.txt
+ls -la
+
+cat /home/yiel12/workstation-mission-practice/terminal-demo/note.txt
+# Hello from the terminal
+```
+
+`terminal-demo/note.txt`는 현재 위치 기준 상대 경로이고, `/home/yiel12/.../note.txt`는 루트(`/`)부터 지정한 절대 경로다. 두 경로로 같은 파일 내용을 확인했다. `ls -la`로 숨김 항목을 포함한 목록도 확인했다.
+
+### 파일·디렉터리 권한 실습
+
+```text
+초기 상태:
+drwxr-xr-x (755) terminal-demo
+-rw-r--r-- (644) terminal-demo/note.txt
+
+파일:
+chmod 600 terminal-demo/note.txt  → -rw------- (600)
+chmod 644 terminal-demo/note.txt  → -rw-r--r-- (644)
+
+디렉터리:
+chmod 700 terminal-demo           → drwx------ (700)
+chmod 755 terminal-demo           → drwxr-xr-x (755)
+```
+
+권한 숫자는 소유자·그룹·기타 사용자 순서로 읽는다. `r=4`, `w=2`, `x=1`이며 숫자를 더해 표기한다. 예를 들어 `644`는 소유자가 읽기·쓰기(6), 그룹과 기타 사용자는 읽기(4)만 가능하다. 디렉터리의 `x`는 내부 항목에 접근할 수 있는 권한이다.
