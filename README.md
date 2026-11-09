@@ -152,3 +152,45 @@ exit
 ```
 
 `attach`는 컨테이너의 주 프로세스 입출력에 연결한다. 연결만 분리하면 주 프로세스가 계속 실행되고, 주 Bash에서 `exit`하면 컨테이너가 종료된다. `exec`는 실행 중인 컨테이너에 별도 프로세스(여기서는 Bash)를 추가하며, 그 Bash에서 `exit`해도 주 프로세스는 계속 실행된다.
+
+- [x] Docker 이미지/컨테이너 목록, 로그, 통계 확인
+
+### Docker 이미지·컨테이너 운영 확인
+
+```text
+$ docker images
+hello-world:latest
+nginx:latest
+ubuntu:latest
+```
+
+확인 시 이미지 3개가 있었다.
+
+```text
+$ docker ps -a
+ubuntu-lab      Exited (0)
+priceless_pare  Exited (0)   # hello-world
+my-web-server   Exited (137) # 기존 컨테이너, 이번 실습에서 변경하지 않음
+```
+
+```bash
+docker logs priceless_pare
+```
+
+로그에 `Hello from Docker!`가 출력되어 `hello-world` 컨테이너의 실행 결과를 확인했다.
+
+```text
+$ docker stats --no-stream ubuntu-lab
+CPU: 0.00%
+Memory: 2.242MiB / 7.52GiB (0.03%)
+Network I/O: 1.17kB / 126B
+Block I/O: 0B / 0B
+Processes: 1
+```
+
+```bash
+docker stop ubuntu-lab
+docker ps -a --filter name=ubuntu-lab
+```
+
+`ubuntu-lab`은 중지됐으며 최종 상태는 `Exited (137)`이었다. 기존 `my-web-server` 컨테이너는 그대로 두었다.
