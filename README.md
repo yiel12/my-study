@@ -90,3 +90,13 @@ docker info --format 'Server={{.ServerVersion}} Containers={{.Containers}} Runni
 ```
 
 Docker CLI 버전과 엔진 응답을 확인했다. 점검 시 실행 중인 컨테이너는 0개, 중지된 컨테이너는 1개, 이미지는 3개였다.
+
+### Docker `hello-world` 실행
+
+```text
+$ docker run hello-world
+Hello from Docker!
+This message shows that your installation appears to be working correctly.
+```
+
+출력에서 Docker 데몬이 `hello-world` 이미지를 내려받고, 컨테이너를 생성해 실행한 것을 확인했다.
