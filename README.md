@@ -78,3 +78,15 @@
 - 원인: 원격 주소가 HTTPS였고, GitHub는 Git 작업의 계정 비밀번호 인증을 지원하지 않는다.
 - 확인: 인증 오류에 `Password authentication is not supported for Git operations`가 표시됐다.
 - 해결: SSH 키를 등록하고 연결을 확인한 뒤 원격 주소를 SSH로 바꾸어 push했다.
+
+### Docker 설치 및 엔진 상태 확인
+
+```bash
+docker --version
+# Docker version 29.9.2, build a82e528
+
+docker info --format 'Server={{.ServerVersion}} Containers={{.Containers}} Running={{.ContainersRunning}} Stopped={{.ContainersStopped}} Images={{.Images}}'
+# Server=29.9.2 Containers=1 Running=0 Stopped=1 Images=3
+```
+
+Docker CLI 버전과 엔진 응답을 확인했다. 점검 시 실행 중인 컨테이너는 0개, 중지된 컨테이너는 1개, 이미지는 3개였다.
