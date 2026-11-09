@@ -14,7 +14,7 @@
 - [X] Dockerfile 작성 및 커스텀 웹 서버 이미지 빌드
 - [X] 포트 매핑 후 브라우저 또는 `curl`로 접속 확인
 - [X] 바인드 마운트 파일 변경 반영 확인
-- [ ] 컨테이너 삭제 후 named volume 데이터 유지 확인
+- [X] 컨테이너 삭제 후 named volume 데이터 유지 확인
 - [ ] Git 설정과 VS Code/GitHub 연동 확인
 - [ ] 보너스: Compose 단일 서비스 실행
 - [ ] 보너스: Compose 웹+보조 서비스 통신 확인
@@ -313,3 +313,36 @@ bind destination=/usr/share/nginx/html/index.html read-write=false
 <h1>안녕, 바인드 마운트!</h1>
 <p>호스트 파일 수정이 컨테이너에 바로 반영됐습니다.</p>
 ```
+
+- [x] 컨테이너 삭제 후 named volume 데이터 유지 확인
+
+### Named volume 데이터 영속성 확인
+
+```bash
+docker volume create mission-data-20261109
+docker run -d --name volume-first --mount type=volume,source=mission-data-20261109,target=/data ubuntu sleep infinity
+docker exec volume-first sh -c 'echo "Persistent data test" > /data/hello.txt && cat /data/hello.txt'
+```
+
+첫 번째 컨테이너의 출력:
+
+```text
+Persistent data test
+```
+
+첫 번째 컨테이너를 삭제한 뒤 같은 볼륨을 새 컨테이너에 연결했다.
+
+```bash
+docker rm -f volume-first
+docker run -d --name volume-second --mount type=volume,source=mission-data-20261109,target=/data ubuntu sleep infinity
+docker ps -a --filter name=volume-first
+docker exec volume-second cat /data/hello.txt
+```
+
+첫 번째 컨테이너 목록에는 결과가 없었고, 두 번째 컨테이너에서 다음 데이터를 읽었다.
+
+```text
+Persistent data test
+```
+
+컨테이너를 삭제해도 named volume은 별도로 남아 데이터를 유지했다.
