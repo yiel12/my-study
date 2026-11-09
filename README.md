@@ -12,7 +12,7 @@
 - [ ] `hello-world`와 Ubuntu 컨테이너 실행
 - [ ] 컨테이너 `attach`와 `exec` 차이 확인
 - [X] Dockerfile 작성 및 커스텀 웹 서버 이미지 빌드
-- [ ] 포트 매핑 후 브라우저 또는 `curl`로 접속 확인
+- [X] 포트 매핑 후 브라우저 또는 `curl`로 접속 확인
 - [ ] 바인드 마운트 파일 변경 반영 확인
 - [ ] 컨테이너 삭제 후 named volume 데이터 유지 확인
 - [ ] Git 설정과 VS Code/GitHub 연동 확인
@@ -262,3 +262,31 @@ docker build -t my-study-web:1.0 .
 [2/2] COPY index.html /usr/share/nginx/html/index.html
 naming to docker.io/library/my-study-web:1.0
 ```
+
+
+- [x] 포트 매핑 후 `curl`로 접속 확인
+
+### 커스텀 웹 서버 실행 및 포트 매핑
+
+```bash
+docker run -d --name mission-web-8080 -p 8080:80 my-study-web:1.0
+docker ps --filter name=mission-web-8080
+```
+
+컨테이너 상태에서 `0.0.0.0:8080->80/tcp`가 표시됐다.
+
+```bash
+curl --max-time 5 -i http://localhost:8080
+```
+
+```text
+HTTP/1.1 200 OK
+Server: nginx/1.31.8
+Content-Type: text/html
+
+<title>나의 첫 웹 서버</title>
+<h1>안녕, 도커! 🐳</h1>
+<p>내가 만든 HTML 파일이 웹 서버에서 돌아가고 있어요!</p>
+```
+
+호스트 포트 `8080` 요청이 컨테이너 포트 `80`으로 전달되고, NGINX가 저장소의 `index.html`을 반환했다. 
