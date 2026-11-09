@@ -11,7 +11,7 @@
 - [ ] Docker 버전과 엔진 상태 확인
 - [ ] `hello-world`와 Ubuntu 컨테이너 실행
 - [ ] 컨테이너 `attach`와 `exec` 차이 확인
-- [ ] Dockerfile 작성 및 커스텀 웹 서버 이미지 빌드
+- [X] Dockerfile 작성 및 커스텀 웹 서버 이미지 빌드
 - [ ] 포트 매핑 후 브라우저 또는 `curl`로 접속 확인
 - [ ] 바인드 마운트 파일 변경 반영 확인
 - [ ] 컨테이너 삭제 후 named volume 데이터 유지 확인
@@ -242,3 +242,23 @@ chmod 755 terminal-demo           → drwxr-xr-x (755)
 ```
 
 권한 숫자는 소유자·그룹·기타 사용자 순서로 읽는다. `r=4`, `w=2`, `x=1`이며 숫자를 더해 표기한다. 예를 들어 `644`는 소유자가 읽기·쓰기(6), 그룹과 기타 사용자는 읽기(4)만 가능하다. 디렉터리의 `x`는 내부 항목에 접근할 수 있는 권한이다.
+
+
+- [x] Dockerfile 작성 및 커스텀 웹 서버 이미지 빌드
+
+### 커스텀 NGINX 이미지 빌드
+
+- 베이스 이미지: `nginx:latest`
+- 커스텀 내용: 저장소의 `index.html`을 NGINX 기본 웹 폴더로 복사
+- `EXPOSE 80`으로 컨테이너가 사용하는 웹 포트를 표시
+- `.dockerignore`로 빌드 문맥을 제한했으며, 빌드 출력에서 문맥 크기 292B를 확인
+
+```bash
+docker build -t my-study-web:1.0 .
+```
+
+```text
+[+] Building 4.5s (7/7) FINISHED
+[2/2] COPY index.html /usr/share/nginx/html/index.html
+naming to docker.io/library/my-study-web:1.0
+```
