@@ -8,25 +8,25 @@
 
 - [X] 터미널 기본 명령과 경로 확인
 - [X] 파일 및 디렉터리 권한 확인·변경
-- [ ] Docker 버전과 엔진 상태 확인
-- [ ] `hello-world`와 Ubuntu 컨테이너 실행
-- [ ] 컨테이너 `attach`와 `exec` 차이 확인
+- [X] Docker 버전과 엔진 상태 확인
+- [X] `hello-world`와 Ubuntu 컨테이너 실행
+- [X] 컨테이너 `attach`와 `exec` 차이 확인
 - [X] Dockerfile 작성 및 커스텀 웹 서버 이미지 빌드
 - [X] 포트 매핑 후 브라우저 또는 `curl`로 접속 확인
 - [X] 바인드 마운트 파일 변경 반영 확인
 - [X] 컨테이너 삭제 후 named volume 데이터 유지 확인
-- [ ] Git 설정과 VS Code/GitHub 연동 확인
+- [X] Git 설정과 VS Code/GitHub 연동 확인
 - [X] 보너스: Compose 단일 서비스 실행
 - [X] 보너스: Compose 웹+보조 서비스 통신 확인
 - [X] 보너스: `up`, `down`, `ps`, `logs` 실행 기록
 - [X] 보너스: 환경 변수 적용
-- [ ] 보너스: GitHub SSH 인증 확인
+- [X] 보너스: GitHub SSH 인증 확인
 
 ## 실행 환경
 
 - OS: Ubuntu 26.04.1 LTS (WSL)
 - 셸/터미널: WSL Bash
-- Docker 버전: 9.9.2 (build a82e528)
+- Docker 버전: Docker version 29.9.2 (build a82e528)
 - Git 버전: 2.53.0
 
 ## 수행 로그
@@ -289,7 +289,7 @@ Content-Type: text/html
 <p>내가 만든 HTML 파일이 웹 서버에서 돌아가고 있어요!</p>
 ```
 
-호스트 포트 `8080` 요청이 컨테이너 포트 `80`으로 전달되고, NGINX가 저장소의 `index.html`을 반환했다. 
+호스트 포트 `8080` 요청이 컨테이너 포트 `80`으로 전달되고, NGINX가 저장소의 `index.html`을 반환했다.
 
 - [x] 바인드 마운트 파일 변경 반영 확인
 
