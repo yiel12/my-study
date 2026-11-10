@@ -16,10 +16,10 @@
 - [X] 바인드 마운트 파일 변경 반영 확인
 - [X] 컨테이너 삭제 후 named volume 데이터 유지 확인
 - [ ] Git 설정과 VS Code/GitHub 연동 확인
-- [ ] 보너스: Compose 단일 서비스 실행
-- [ ] 보너스: Compose 웹+보조 서비스 통신 확인
-- [ ] 보너스: `up`, `down`, `ps`, `logs` 실행 기록
-- [ ] 보너스: 환경 변수 적용
+- [X] 보너스: Compose 단일 서비스 실행
+- [X] 보너스: Compose 웹+보조 서비스 통신 확인
+- [X] 보너스: `up`, `down`, `ps`, `logs` 실행 기록
+- [X] 보너스: 환경 변수 적용
 - [ ] 보너스: GitHub SSH 인증 확인
 
 ## 실행 환경
@@ -362,4 +362,52 @@ docker compose version
 이번 미션의 테스트 컨테이너 5개를 정리했다. 기존 `my-web-server`는 7일 전에 생성된 중지 상태의 컨테이너로, 이번 실습에서 변경하거나 삭제하지 않았다. named volume `mission-data-20261109`는 컨테이너 정리 후에도 목록에 남아 있다.
 
 Compose 버전: `Docker Compose version v5.6.1`
+
+### Compose 단일·다중 서비스 실습
+
+저장소 루트에 `compose.yaml`을 작성했다. 웹 서비스는 Dockerfile에서 빌드하고, 호스트 포트는 `WEB_PORT` 환경 변수로 지정한다. 기본값은 8080이다.
+
+```yaml
+services:
+  web:
+    build: .
+    image: my-study-web:compose
+    ports:
+      - "${WEB_PORT:-8080}:80"
+
+  toolbox:
+    image: busybox:latest
+    command: ["sh", "-c", "while true; do sleep 3600; done"]
+```
+
+실습 및 확인한 명령:
+
+```bash
+docker compose config
+docker compose up -d
+docker compose ps
+curl --max-time 5 -i http://localhost:8080
+docker compose logs web
+docker compose exec toolbox wget -qO- http://web:80
+WEB_PORT=8081 docker compose up -d
+docker compose ps
+curl --max-time 5 -i http://localhost:8081
+docker compose logs --tail=10 web
+docker compose down
+docker compose ps
+```
+
+- 단일 웹 서비스 실행 시 `docker compose ps`에서 `my-study-web-1`의 상태가 `Up`, 포트가 `8080->80`으로 표시됐다.
+- `curl http://localhost:8080` 응답은 `HTTP/1.1 200 OK`였다.
+- `docker compose logs web`에서 NGINX 시작 로그와 HTTP 200 요청 로그를 확인했다.
+- `toolbox`에서 `wget -qO- http://web:80`을 실행해 HTML을 받았다. Compose 내부 네트워크에서 서비스 이름 `web`으로 통신됨을 확인했다.
+- `WEB_PORT=8081`로 실행한 뒤 포트가 `8081->80`으로 바뀌었고, `curl http://localhost:8081`도 HTTP 200을 반환했다.
+- `docker compose down`으로 두 컨테이너와 네트워크를 제거했다. 이후 `docker compose ps` 결과는 비어 있었다.
+
+#### 트러블슈팅: Compose 이미지 pull 경고
+
+- 문제: 첫 실행에서 `Image my-study-web:compose pull access denied` 경고가 표시됐다.
+- 확인: Compose가 이어서 저장소의 Dockerfile로 이미지를 빌드했고, 컨테이너가 `Started` 상태가 됐다.
+- 해결: 원격 이미지가 없어도 `build: .` 설정으로 로컬 빌드가 진행되는 것을 확인했다. 웹 요청도 HTTP 200으로 응답했다.
+
 
