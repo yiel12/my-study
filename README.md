@@ -54,6 +54,55 @@ rm note-renamed.txt
 
 파일 내용은 `Hello from the terminal`이었다. `terminal-demo/note.txt`는 현재 위치 기준 상대 경로이고, `/home/yiel12/workstation-mission-practice/terminal-demo/note.txt`는 루트(`/`)부터 지정한 절대 경로다. 두 경로로 같은 파일을 확인했다.
 
+실제 경로와 파일 목록을 확인한 출력 (2026-11-17):
+
+```text
+$ pwd
+/home/yiel12/workstation-mission-practice
+
+$ ls -l
+total 4
+drwxr-xr-x 2 yiel12 yiel12 4096 Nov  9 21:30 terminal-demo
+
+$ ls -l terminal-demo
+total 4
+-rw-r--r-- 1 yiel12 yiel12 24 Nov  9 21:30 note.txt
+```
+
+### 파일 생성·복사·이동·삭제 실제 출력 (2026-11-17)
+
+연습용 새 폴더에서 명령을 실행했다. `touch -v`는 지원되지 않는 옵션이라 오류가 났고, `printf`의 출력 리디렉션으로 파일을 만들었다.
+
+```text
+$ mkdir -v terminal-ops-demo-20261117
+mkdir: created directory 'terminal-ops-demo-20261117'
+
+$ touch -v note.txt
+error: unexpected argument '-v' found
+
+$ printf 'Terminal file operations evidence\n' > note.txt
+$ cat note.txt
+Terminal file operations evidence
+
+$ cp -v note.txt note-copy.txt
+'note.txt' -> 'note-copy.txt'
+
+$ mv -v note-copy.txt note-renamed.txt
+renamed 'note-copy.txt' -> 'note-renamed.txt'
+
+$ ls -l
+total 8
+-rw-r--r-- 1 yiel12 yiel12 34 Nov 17 17:15 note-renamed.txt
+-rw-r--r-- 1 yiel12 yiel12 34 Nov 17 17:15 note.txt
+
+$ rm -v note-renamed.txt
+removed 'note-renamed.txt'
+
+$ ls -l
+total 4
+-rw-r--r-- 1 yiel12 yiel12 34 Nov 17 17:15 note.txt
+```
+
 ## 파일 및 디렉터리 권한
 
 ```text
@@ -71,6 +120,31 @@ chmod 755 terminal-demo           → drwxr-xr-x (755)
 ```
 
 권한 숫자는 소유자·그룹·기타 사용자 순서다. 읽기 `r=4`, 쓰기 `w=2`, 실행/접근 `x=1`을 더해 표시한다. 파일 권한 `644`는 소유자가 읽고 쓸 수 있고 나머지는 읽을 수 있다는 뜻이다. 디렉터리의 `x` 권한은 내부 항목에 접근할 수 있게 한다.
+
+현재 권한 확인 출력 (2026-11-17):
+
+```text
+drwxr-xr-x (755) terminal-demo
+-rw-r--r-- (644) terminal-demo/note.txt
+```
+
+`ls -l`의 문자 권한과 `stat`의 숫자 권한이 각각 디렉터리 `755`, 파일 `644`임을 보여준다.
+
+### 추가 권한 조합 확인 (2026-11-17)
+
+```text
+chmod 640 terminal-demo/note.txt
+chmod 750 terminal-demo
+drwxr-x--- (750) terminal-demo
+-rw-r----- (640) terminal-demo/note.txt
+```
+
+`750`은 소유자에게 읽기·쓰기·접근 권한, 그룹에는 읽기·접근 권한을 주고 기타 사용자 권한은 주지 않는다. 파일 `640`은 소유자에게 읽기·쓰기, 그룹에는 읽기만 주고 기타 사용자 권한은 주지 않는다. 확인 후 디렉터리는 `755`, 파일은 `644`로 복구했다.
+
+```text
+drwxr-xr-x (755) terminal-demo
+-rw-r--r-- (644) terminal-demo/note.txt
+```
 
 ## GitHub 및 VS Code 연동
 
@@ -97,6 +171,46 @@ git push origin main
 
 비밀 키, 토큰, 공개 키 내용은 저장소나 이 기록에 넣지 않았다.
 
+### GitHub push 성공 출력 (2026-11-17)
+
+WSL에서 GitHub SSH 포트 연결이 되지 않아 Windows PowerShell의 Git Credential Manager를 사용해 HTTPS로 push했다. SSH 원격 주소는 변경하지 않았다.
+
+```text
+PS> git push https://github.com/yiel12/my-study.git main:main
+Enumerating objects: 5, done.
+Counting objects: 100% (5/5), done.
+Delta compression using up to 14 threads
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 4.10 KiB | 4.10 MiB/s, done.
+Total 3 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (2/2), completed with 2 local objects.
+To https://github.com/yiel12/my-study.git
+   2f260b2..67cdd30  main -> main
+```
+
+원격 추적 정보를 갱신한 뒤 `git status --short --branch`에서 `## main...origin/main`을 확인했다. 현재 보완 중인 변경 사항은 별도 커밋 후 push해야 한다.
+
+### 저장소 루트 구조와 파일 배치 기준
+
+실행 결과는 Git이 추적하는 파일만 표시한다. 저장소 루트에 Docker 빌드에 필요한 파일을 함께 두어 `docker build .`에서 `Dockerfile`이 `index.html`을 찾을 수 있게 했다. `.dockerignore`는 빌드 문맥에 불필요한 파일이 들어가지 않게 하고, `compose.yaml`에는 웹·보조 서비스와 포트 설정을 모아 재현 가능하게 했다.
+
+```text
+my-study/
+├── .dockerignore
+├── Dockerfile
+├── README.md
+├── command-history.txt
+├── compose.yaml
+├── index.html
+```
+
+- `Dockerfile`: NGINX 이미지를 만들고 웹 페이지 파일을 복사한다.
+- `index.html`: 웹 서버가 반환하는 페이지다.
+- `.dockerignore`: Docker 빌드 문맥에서 불필요한 파일을 제외한다.
+- `compose.yaml`: Compose 서비스, 네트워크, 포트 설정을 정의한다.
+- `README.md`: 수행 절차와 실제 검증 결과를 기록한다.
+- `command-history.txt`: 터미널에서 사용한 명령어 이력을 보관한다.
+
 ## Docker 엔진 확인 및 기본 컨테이너
 
 ```bash
@@ -106,14 +220,153 @@ docker --version
 docker info --format 'Server={{.ServerVersion}} Containers={{.Containers}} Running={{.ContainersRunning}} Stopped={{.ContainersStopped}} Images={{.Images}}'
 # Server=29.9.2 Containers=1 Running=0 Stopped=1 Images=3
 ```
+### Docker 엔진 전체 상태 출력
+
+처음에는 WSL에서 Docker CLI를 찾지 못했다. Docker Desktop의 WSL Integration을 켠 뒤 `docker info`가 동작했다. 확인 시점의 Docker Client·Server 버전은 `29.9.3`, Compose 플러그인은 `v5.7.0`이었다.
+
+```text
+Client:
+ Version:    29.9.3
+ Context:    default
+ Debug Mode: false
+ Plugins:
+  agent: Docker AI Agent Runner (Docker Inc.)
+    Version:  v1.153.0
+    Path:     /usr/local/lib/docker/cli-plugins/docker-agent
+  ai: Docker AI Agent - Ask Gordon (Docker Inc.)
+    Version:  v1.33.0
+    Path:     /usr/local/lib/docker/cli-plugins/docker-ai
+  buildx: Docker Buildx (Docker Inc.)
+    Version:  v0.38.1
+    Path:     /usr/local/lib/docker/cli-plugins/docker-buildx
+  compose: Docker Compose (Docker Inc.)
+    Version:  v5.7.0
+    Path:     /usr/local/lib/docker/cli-plugins/docker-compose
+  debug: Get a shell into any image or container (Docker Inc.)
+    Version:  0.49.0
+    Path:     /usr/local/lib/docker/cli-plugins/docker-debug
+  desktop: Docker Desktop commands (Docker Inc.)
+    Version:  4.99.0
+    Path:     /usr/local/lib/docker/cli-plugins/docker-desktop
+  dhi: CLI for managing Docker Hardened Images (Docker Inc.)
+    Version:  v0.0.10
+    Path:     /usr/local/lib/docker/cli-plugins/docker-dhi
+  extension: Manages Docker extensions (Docker Inc.)
+    Version:  v0.2.32
+    Path:     /usr/local/lib/docker/cli-plugins/docker-extension
+  init: Creates Docker-related starter files for your project (Docker Inc.)
+    Version:  v1.4.1
+    Path:     /usr/local/lib/docker/cli-plugins/docker-init
+  mcp: Docker MCP Plugin (Docker Inc.)
+    Version:  v0.44.3
+    Path:     /usr/local/lib/docker/cli-plugins/docker-mcp
+  model: Docker Model Runner (Docker Inc.)
+    Version:  v1.2.9
+    Path:     /usr/local/lib/docker/cli-plugins/docker-model
+  offload: Docker Offload (Docker Inc.)
+    Version:  v0.7.36
+    Path:     /usr/local/lib/docker/cli-plugins/docker-offload
+  pass: Docker Pass Secrets Manager Plugin (beta) (Docker Inc.)
+    Version:  v0.3.2
+    Path:     /usr/local/lib/docker/cli-plugins/docker-pass
+  sandbox: "docker sandbox" is deprecated, use Docker Sandboxes instead (Docker Inc.)
+    Version:  v0.13.0
+    Path:     /usr/local/lib/docker/cli-plugins/docker-sandbox
+  scout: Docker Scout (Docker Inc.)
+    Version:  v1.28.0
+    Path:     /usr/local/lib/docker/cli-plugins/docker-scout
+
+Server:
+ Containers: 1
+  Running: 0
+  Paused: 0
+  Stopped: 1
+ Images: 6
+ Server Version: 29.9.3
+ Storage Driver: overlayfs
+  driver-type: io.containerd.snapshotter.v1
+ Logging Driver: local
+ Cgroup Driver: cgroupfs
+ Cgroup Version: 2
+ Plugins:
+  Volume: local
+  Network: bridge host ipvlan macvlan null overlay
+  Log: awslogs fluentd gcplogs gelf journald json-file local splunk syslog
+ CDI spec directories:
+  /etc/cdi
+  /var/run/cdi
+ Discovered Devices:
+  cdi: docker.com/gpu=webgpu
+ Swarm: inactive
+ Runtimes: io.containerd.runc.v2 nvidia runc
+ Default Runtime: runc
+ Init Binary: docker-init
+ containerd version: b7a25261e029d68978bbf290df0a62fc819b3c51
+ runc version: v1.5.2-0-g29dd3dc2
+ init version: de40ad0
+ Security Options:
+  seccomp
+   Profile: builtin
+  cgroupns
+ Kernel Version: 6.18.58.1-microsoft-standard-WSL2
+ Operating System: Docker Desktop
+ OSType: linux
+ Architecture: x86_64
+ CPUs: 14
+ Total Memory: 7.52GiB
+ Name: docker-desktop
+ ID: fa941bfb-14c3-4b0c-8b9d-b9a316c828b9
+ Docker Root Dir: /var/lib/docker
+ Debug Mode: false
+ HTTP Proxy: http.docker.internal:3128
+ HTTPS Proxy: http.docker.internal:3128
+ No Proxy: hubproxy.docker.internal
+ Labels:
+  com.docker.desktop.address=unix:///var/run/docker-cli.sock
+ Experimental: false
+ Insecure Registries:
+  hubproxy.docker.internal:5555
+  127.0.0.0/8
+  ::1/128
+ Live Restore Enabled: false
+ Firewall Backend: iptables
+
+```
+
+### Docker hello-world 실행
 
 `hello-world` 이미지를 실행해 Docker 데몬이 이미지로 컨테이너를 만들고 실행하는 것을 확인했다.
 
 ```bash
 docker run hello-world
 ```
-
 출력에는 `Hello from Docker!`와 설치가 정상 동작한다는 안내가 표시됐다.
+
+
+2026-11-17 재실행 결과:
+
+```text
+Hello from Docker!
+This message shows that your installation appears to be working correctly.
+
+To generate this message, Docker took the following steps:
+ 1. The Docker client contacted the Docker daemon.
+ 2. The Docker daemon pulled the "hello-world" image from the Docker Hub.
+    (amd64)
+ 3. The Docker daemon created a new container from the image. It runs the
+    executable that produces the output shown here.
+ 4. The Docker daemon streamed the output to the Docker client, which sent it
+    to the terminal.
+
+To try something more ambitious, you can run an Ubuntu container with:
+ $ docker run -it ubuntu bash
+
+Share images, automate workflows, and more with a free Docker ID:
+ https://hub.docker.com/
+
+For more examples and ideas, visit:
+ https://docs.docker.com/get-started/
+```
 
 ## Ubuntu 컨테이너, `attach`, `exec`, `exit`
 
@@ -166,6 +419,28 @@ Processes: 1
 
 미션용 `ubuntu-lab` 컨테이너는 실습 후 중지했다. 이후 테스트 컨테이너를 정리할 때 기존 `my-web-server`는 그대로 두었다.
 
+### 이미지와 컨테이너 목록 원시 출력 (2026-11-17)
+
+```text
+$ docker ps -a
+CONTAINER ID   IMAGE         COMMAND                  CREATED         STATUS                     PORTS     NAMES
+f48863464d42   hello-world   "/hello"                 4 minutes ago   Exited (0) 4 minutes ago             optimistic_jackson
+971b70d96369   nginx         "/docker-entrypoint.…"   2 weeks ago     Exited (137) 2 weeks ago             my-web-server
+```
+
+```text
+$ docker images
+IMAGE                  ID             DISK USAGE   CONTENT SIZE   EXTRA
+busybox:latest         a46257e06c82       6.81MB         2.23MB
+hello-world:latest     c567b231f656       25.9kB         9.49kB    U
+my-study-web:1.0       466c2361b457        241MB         63.9MB
+my-study-web:compose   f999dde84cd6        241MB         63.9MB
+nginx:latest           5ab5b0b01097        243MB         66.8MB    U
+ubuntu:latest          6a06111c3b0a        163MB         45.9MB
+```
+
+`my-web-server`는 실습 전부터 있던 중지 컨테이너이므로 그대로 두었다. `U`는 Docker 이미지 목록 화면에서 사용 중임을 표시한 항목이다.
+
 ## 커스텀 NGINX 이미지 빌드
 
 저장소 루트의 `Dockerfile`:
@@ -193,6 +468,37 @@ docker build -t my-study-web:1.0 .
 
 빌드가 완료됐고 NGINX 기본 웹 폴더에 저장소의 `index.html`을 복사한 것을 확인했다.
 
+### Docker 이미지 빌드 원시 출력 (2026-11-17)
+
+```text
+#0 building with "default" instance using docker driver
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 174B 0.0s done
+#1 DONE 0.1s
+#2 [internal] load metadata for docker.io/library/nginx:latest
+#2 DONE 0.1s
+#3 [internal] load .dockerignore
+#3 transferring context: 67B 0.0s done
+#3 DONE 0.0s
+#4 [internal] load build context
+#4 transferring context: 32B 0.0s done
+#4 DONE 0.0s
+#5 [1/2] FROM docker.io/library/nginx:latest@sha256:5ab5b0b01097420873a3f3330f44248e34a3c2a3e8d5ee30658aeae8cb7435da
+#5 resolve docker.io/library/nginx:latest@sha256:5ab5b0b01097420873a3f3330f44248e34a3c2a3e8d5ee30658aeae8cb7435da 0.0s done
+#5 DONE 0.1s
+#6 [2/2] COPY index.html /usr/share/nginx/html/index.html
+#6 CACHED
+#7 exporting to image
+#7 exporting layers done
+#7 exporting manifest sha256:8226564b7bed5eb3fa538ea3f06053797886059c3defa1f45a4ab7c8e2366f87 0.0s done
+#7 exporting config sha256:c44359132cc28a11d6ffb9fa1b9727d251a6e0f24db988e7080b868086b75f33 0.0s done
+#7 exporting attestation manifest sha256:0fbfa4e02f7a231e39d2b22eb2c8128cd8749df8bab9ebef0be018348b718f31 0.0s done
+#7 exporting manifest list sha256:ec18a0ea17c5d76c4299edd9c0f7df1672893312770bd21dbf2b4e34772f894b 0.0s done
+#7 naming to docker.io/library/my-study-web:1.0 done
+#7 unpacking to docker.io/library/my-study-web:1.0 0.0s done
+#7 DONE 0.2s
+```
+
 ## 네트워크 네임스페이스와 포트 매핑
 
 컨테이너는 자체 네트워크 네임스페이스를 사용해 호스트와 분리된 네트워크 인터페이스, IP 주소, 경로, 포트 공간을 가진다. 따라서 컨테이너 안의 80번 포트와 호스트의 `localhost:80`은 같은 주소가 아니며, 호스트 요청이 컨테이너로 자동 전달되지 않는다.
@@ -206,6 +512,83 @@ curl --max-time 5 -i http://localhost:8080
 ```
 
 컨테이너 상태에 `0.0.0.0:8080->80/tcp`가 표시됐고, `curl`은 `HTTP/1.1 200 OK`와 저장소의 HTML을 반환했다.
+
+### 네임스페이스와 포트 포워딩 확인 출력 (2026-11-17)
+
+```text
+$ readlink /proc/self/ns/net
+net:[4026531833]
+
+$ docker exec mission-web-evidence readlink /proc/self/ns/net
+net:[4026532476]
+
+$ docker inspect --format '{{range .NetworkSettings.Networks}}Network={{.NetworkID}} IP={{.IPAddress}}{{end}}' mission-web-evidence
+Network=1f02bc91c60ea9f1ad173b6585495ea7495cf84f907cda3780ec3f8c6091a1e3 IP=172.17.0.2
+
+$ docker port mission-web-evidence
+80/tcp -> 0.0.0.0:8080
+80/tcp -> [::]:8080
+
+$ ss -ltnp | grep ':8080'
+LISTEN 0 4096 *:8080 *:*
+```
+
+WSL과 컨테이너의 네트워크 네임스페이스 ID가 달랐다. `docker port`는 컨테이너의 80번 포트를 호스트의 IPv4·IPv6 8080번 포트에 연결한 것을 보여준다. `ss`에서도 8080번 포트가 LISTEN 상태임을 확인했다.
+
+### 포트 매핑 및 HTTP 응답 원시 출력 (2026-11-17)
+
+```text
+$ docker ps --filter name=mission-web-evidence
+CONTAINER ID   IMAGE              COMMAND                  CREATED          STATUS         PORTS                                     NAMES
+c5ca26c970c4   my-study-web:1.0   "/docker-entrypoint.…"   10 seconds ago   Up 9 seconds   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp   mission-web-evidence
+```
+
+```text
+$ curl --max-time 5 -i http://localhost:8080
+HTTP/1.1 200 OK
+Server: nginx/1.31.8
+Date: Tue, 17 Nov 2026 07:43:00 GMT
+Content-Type: text/html
+Content-Length: 253
+Last-Modified: Mon, 09 Nov 2026 13:23:07 GMT
+Connection: keep-alive
+ETag: "6af1c93b-fd"
+Accept-Ranges: bytes
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>나의 첫 웹 서버</title>
+</head>
+<body>
+<h1>안녕, 바인드 마운트!</h1>
+<p>호스트 파일 수정이 컨테이너에 바로 반영됐습니다.</p>
+</body>
+</html>
+```
+
+### 빌드·실행·변경 확인 흐름 (2026-11-17)
+
+1. `Dockerfile`과 `index.html`로 이미지를 빌드했다. 이 재실행에서는 Docker가 `COPY index.html` 단계를 `CACHED`로 재사용했고 빌드가 완료됐다.
+2. 이미지를 포트 매핑해 컨테이너를 실행했다. `docker ps`에 `0.0.0.0:8080->80/tcp`가 표시됐고, `curl`은 HTTP 200과 HTML을 반환했다.
+3. 바인드 마운트 실습에서 호스트의 `index.html`을 수정한 뒤 페이지를 다시 요청했다. 수정 문구가 바로 표시돼, 바인드 마운트에서는 호스트 파일 변경이 이미지 재빌드 없이 반영됨을 확인했다.
+4. 바인드 마운트가 없는 일반 이미지 컨테이너는 이미지 안의 파일을 사용하므로, 새 HTML을 이미지에 포함하려면 다시 빌드하고 새 컨테이너를 실행해야 한다.
+
+핵심 로그:
+
+```text
+빌드: #6 [2/2] COPY index.html /usr/share/nginx/html/index.html
+      #6 CACHED
+      #7 DONE 0.2s
+
+실행: container c5ca26c970c4
+      0.0.0.0:8080->80/tcp
+
+접속: HTTP/1.1 200 OK
+      <h1>안녕, 바인드 마운트!</h1>
+      <p>호스트 파일 수정이 컨테이너에 바로 반영됐습니다.</p>
+```
 
 ## 바인드 마운트와 실시간 파일 변경
 
@@ -257,6 +640,87 @@ docker exec volume-second cat /data/hello.txt
 ```
 
 첫 번째 컨테이너는 목록에서 사라졌지만 새 컨테이너에서 `Persistent data test`를 다시 읽었다. Named volume은 컨테이너와 별도로 유지되지만, 볼륨 자체가 삭제되거나 손상되는 상황에 대비하려면 별도 백업도 필요하다.
+
+### 바인드 마운트와 named volume 선택 기준
+
+- 바인드 마운트는 특정 호스트 경로를 컨테이너 경로에 연결한다. 소스 코드처럼 호스트에서 직접 편집하고 즉시 반영할 파일에 적합하다. 호스트 파일 경로가 존재해야 하고, 호스트의 디렉터리 구조에 의존한다.
+- Named volume은 Docker가 관리하는 저장 공간이다. 데이터베이스 파일이나 애플리케이션 데이터처럼 컨테이너를 지운 뒤에도 보존할 데이터에 적합하다. 컨테이너와 별도로 남지만, 볼륨 자체의 삭제나 손상에 대비해 별도 백업이 필요하다.
+- 이번 실습에서는 웹 페이지 변경 확인에 읽기 전용 바인드 마운트를, 컨테이너 삭제 후 데이터 유지 확인에 named volume을 사용했다.
+
+### Named volume 백업·복원 실습 (2026-11-17)
+
+백업 전 원본 볼륨을 사용하는 컨테이너가 없는 것을 확인했다. 임시 Ubuntu 컨테이너에 원본 볼륨을 읽기 전용으로 연결하고, 아카이브 파일은 저장소 바깥의 `/tmp/mission-backups`에 만들었다.
+
+```bash
+docker ps -a --filter volume=mission-data-20261109
+mkdir -p /tmp/mission-backups
+
+docker run --rm \
+  --mount type=volume,source=mission-data-20261109,target=/data,readonly \
+  --mount type=bind,source=/tmp/mission-backups,target=/backup \
+  ubuntu tar -czf /backup/mission-data-20261109.tar.gz -C /data .
+
+tar -tzf /tmp/mission-backups/mission-data-20261109.tar.gz
+ls -lh /tmp/mission-backups/mission-data-20261109.tar.gz
+```
+
+확인 출력:
+
+```text
+$ docker ps -a --filter volume=mission-data-20261109
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+
+$ tar -tzf /tmp/mission-backups/mission-data-20261109.tar.gz
+./
+./hello.txt
+
+$ ls -lh /tmp/mission-backups/mission-data-20261109.tar.gz
+-rw-r--r-- 1 root root 168 Nov 17 17:09 /tmp/mission-backups/mission-data-20261109.tar.gz
+```
+
+새 named volume에 아카이브를 풀고 내용을 확인했다.
+
+```bash
+docker volume create mission-data-restore-20261117
+
+docker run --rm \
+  --mount type=volume,source=mission-data-restore-20261117,target=/data \
+  --mount type=bind,source=/tmp/mission-backups,target=/backup,readonly \
+  ubuntu tar -xzf /backup/mission-data-20261109.tar.gz -C /data
+
+docker run --rm \
+  --mount type=volume,source=mission-data-restore-20261117,target=/data,readonly \
+  ubuntu sh -c 'ls -l /data && cat /data/hello.txt'
+```
+
+복원 확인 출력:
+
+```text
+total 4
+-rw-r--r-- 1 root root 21 Nov  9 13:29 hello.txt
+Persistent data test
+```
+
+복원한 데이터가 읽히는 것을 확인했다. `/tmp`의 아카이브는 임시 백업이며 저장소에 추가하지 않는다. 실제 운영 데이터는 백업 파일을 별도 영구 저장 위치에도 보관해야 한다.
+
+### 컨테이너 삭제 후 볼륨과 데이터 재확인 (2026-11-17)
+
+```text
+$ docker ps -a --filter name=volume-first
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+
+$ docker ps -a --filter name=volume-second
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+
+$ docker volume ls --filter name=mission-data-20261109
+DRIVER    VOLUME NAME
+local     mission-data-20261109
+
+$ docker run --rm --mount type=volume,source=mission-data-20261109,target=/data,readonly ubuntu cat /data/hello.txt
+Persistent data test
+```
+
+두 컨테이너가 삭제된 뒤에도 볼륨이 남아 있고, 새 임시 컨테이너에서 기존 파일을 읽을 수 있었다.
 
 ## Named volume 백업·복원 절차 예시
 
@@ -348,6 +812,39 @@ docker compose ps
 
 두 컨테이너와 Compose 네트워크를 제거한 뒤 `docker compose ps` 결과가 비어 있는 것을 확인했다.
 
+### 환경 변수와 재현 절차
+
+`compose.yaml`의 `"${WEB_PORT:-8080}:80"`은 호스트 포트를 환경 변수로 정한다. `WEB_PORT`가 설정되지 않았거나 빈 값이면 기본 포트 8080을 사용한다. Compose 변수 치환 우선순위는 다음과 같다.
+
+1. 현재 셸의 환경 변수
+2. 명령에 지정한 `--env-file` 파일
+3. `--env-file`을 지정하지 않았을 때 프로젝트 루트의 `.env` 파일
+4. 위에서 값이 정해지지 않으면 `${WEB_PORT:-8080}`의 기본값 8080
+
+이 미션에서는 WSL Bash에서 셸 환경 변수 `WEB_PORT=8081`을 지정해 실행하고, 포트가 `8081->80`으로 바뀌며 HTTP 200 응답이 오는 것을 확인했다.
+
+```bash
+# Compose가 해석한 포트 설정 확인
+docker compose config
+
+# WSL Bash에서 이번 명령에만 포트 8081 적용
+WEB_PORT=8081 docker compose up -d
+docker compose ps
+curl --max-time 5 -i http://localhost:8081
+docker compose down
+```
+
+PowerShell에서는 환경 변수 설정 문법이 다르다. PowerShell에서 실행할 때는 다음처럼 설정하고, 사용 후 지운다.
+
+```powershell
+$env:WEB_PORT = '8081'
+docker compose config
+docker compose up -d
+Remove-Item Env:WEB_PORT
+```
+
+실행 전 선택한 호스트 포트가 사용 중인지 확인하고, 실행 후에는 `docker compose ps`의 포트 표시와 `curl` 응답을 확인한다. 셸 문법과 포트 값까지 기록하면 다른 환경에서도 절차를 재현하기 쉽다.
+
 ## 테스트 컨테이너 정리
 
 ```bash
@@ -379,9 +876,122 @@ docker volume ls --filter name=mission-data-20261109
 - 원인: `/mnt/c/...`는 WSL 경로이고 PowerShell은 Windows 경로를 사용한다.
 - 해결: PowerShell에서는 `Set-Location -LiteralPath 'C:\Users\STP_7\Desktop\my-study'`를 사용하거나, WSL 터미널로 전환한 뒤 `/mnt/c/Users/Stp_7/Desktop/my-study`로 이동한다.
 
+### 호스트 포트 충돌 진단 (2026-11-17)
+
+8080 포트를 이미 사용 중인 상태에서 같은 포트로 두 번째 컨테이너를 실행해 충돌을 재현했다.
+
+```text
+$ docker run --rm -d --name mission-web-conflict -p 8080:80 my-study-web:1.0
+docker: Error response from daemon: failed to set up container networking:
+Bind for 0.0.0.0:8080 failed: port is already allocated
+```
+
+사용 중인 컨테이너를 확인했다.
+
+```text
+$ docker ps --filter publish=8080
+CONTAINER ID   IMAGE              COMMAND                  STATUS         PORTS                                     NAMES
+c5ca26c970c4   my-study-web:1.0   "/docker-entrypoint.…"   Up 22 minutes  0.0.0.0:8080->80/tcp, [::]:8080->80/tcp   mission-web-evidence
+```
+
+`ss`에서도 포트가 LISTEN 상태였다. 이 WSL 출력에는 프로세스 PID가 표시되지 않아, Docker의 포트 필터로 소유 컨테이너를 확인했다.
+
+```text
+$ ss -ltnp | grep ':8080'
+LISTEN 0 4096 *:8080 *:*
+```
+
+Docker 컨테이너가 소유한 포트는 PID를 강제 종료하지 않고 소유 컨테이너를 정상 중지한다.
+
+```bash
+docker stop mission-web-evidence
+docker ps --filter publish=8080
+ss -ltnp | grep ':8080' || true
+```
+
+중지 뒤 Docker 포트 목록이 비었고 `ss`에서도 8080 결과가 없어 포트가 해제된 것을 확인했다. 일반 Linux 프로세스가 점유한 포트라면 `ss -ltnp 'sport = :8080'`에서 PID를 확인하고 `ps -fp <PID>`로 프로세스를 먼저 식별한다. 직접 실행한 프로그램임을 확인한 경우에만 서비스를 정상 종료하거나 `kill -TERM <PID>`를 사용한다.
+
+### WSL에서 Docker 명령을 찾지 못한 문제 (2026-11-17)
+
+- 문제: WSL에서 `docker info`를 실행했을 때 Docker CLI를 찾지 못했다.
+- 확인 출력:
+
+```text
+The command 'docker' could not be found in this WSL 2 distro.
+We recommend to activate the WSL integration in Docker Desktop settings.
+```
+
+- 조치: Docker Desktop의 WSL Integration 설정에서 Ubuntu를 켜고 적용했다.
+- 결과: 같은 WSL 터미널에서 `docker info`가 동작했고 Client·Server 버전 `29.9.3`과 Compose `v5.7.0`을 확인했다.
+
+### WSL에서 GitHub SSH에 연결할 수 없었던 문제 (2026-11-17)
+
+- 문제: README 커밋은 로컬에 있었지만 WSL의 SSH와 HTTPS 네트워크 경로가 GitHub에 도달하지 못했다.
+- WSL SSH 확인:
+
+```text
+$ ssh -T git@github.com
+ssh: connect to host github.com port 22: No route to host
+
+$ ssh -T -p 443 git@ssh.github.com
+ssh: connect to host ssh.github.com port 443: No route to host
+```
+
+- WSL HTTPS 확인:
+
+```text
+$ curl -I --max-time 10 https://github.com
+curl: (7) Failed to connect to github.com port 443: Could not connect to server
+```
+
+- Windows PowerShell에서는 `Test-NetConnection github.com -Port 443`의 `TcpTestSucceeded`가 `True`였고, Git Credential Manager가 설정돼 있음을 확인했다.
+- 해결: Windows PowerShell에서 HTTPS 주소로 push하고 원격 추적 정보를 새로 받아왔다.
+
+```text
+$ git push https://github.com/yiel12/my-study.git main:main
+To https://github.com/yiel12/my-study
+   2f260b2..67cdd30  main -> main
+
+$ git fetch https://github.com/yiel12/my-study.git main:refs/remotes/origin/main
+2f260b2..67cdd30  main -> origin/main
+
+$ git status --short --branch
+## main...origin/main
+```
+
+- 참고: WSL의 `ahead 1`은 HTTPS 직접 push 뒤 로컬 `origin/main` 추적 정보가 갱신되지 않아 보였던 상태였다. Fetch로 추적 정보를 갱신한 뒤 동기화를 확인했다.
+
+### `touch -v` 옵션 오류
+
+- 문제: `touch -v note.txt`에서 `unexpected argument '-v'` 오류가 났다.
+- 원인: 사용 중인 `touch` 명령은 `-v` 옵션을 지원하지 않는다.
+- 해결: `touch note.txt`처럼 옵션 없이 사용하거나, 이번 실습처럼 `printf '내용\n' > note.txt`로 파일을 생성했다.
+
 ## 미션 원리 정리
 
 - 이미지와 컨테이너의 차이: 이미지는 컨테이너를 만드는 읽기 전용 템플릿이고, 컨테이너는 이미지로 실행한 인스턴스다. 컨테이너를 삭제해도 별도 볼륨의 데이터는 남을 수 있다.
 - 절대 경로와 상대 경로: 절대 경로는 `/`부터 위치를 지정하고, 상대 경로는 현재 작업 폴더를 기준으로 지정한다.
 - 권한 숫자 표기: `r=4`, `w=2`, `x=1`을 더해 소유자·그룹·기타 사용자 순서로 쓴다. 파일 `644`는 소유자가 읽고 쓸 수 있고 나머지는 읽을 수 있다. 디렉터리 `755`는 소유자가 전체 권한을 가지며 나머지는 읽고 접근할 수 있다.
 - 호스트 포트 충돌 진단 순서: 먼저 `docker ps`에서 사용 중인 포트 매핑을 확인하고, 필요하면 `ss -ltnp`로 호스트 포트를 점유한 프로세스를 찾는다. 해당 서비스를 정리하거나 다른 호스트 포트를 선택한 뒤 다시 접속을 확인한다.
+
+### 호스트 경로와 컨테이너 경로 선택 기준
+
+- 현재 작업 폴더를 기준으로 빠르게 입력할 때는 상대 경로를 쓸 수 있다. 예를 들어 저장소 루트에서 `index.html`은 상대 경로다.
+- 스크립트나 다른 작업 폴더에서도 같은 파일을 가리켜야 할 때는 절대 경로를 사용하면 현재 위치에 따른 혼동을 줄일 수 있다.
+- Dockerfile의 `COPY` 원본 경로는 호스트의 임의 경로가 아니라 Docker 빌드 문맥 안의 상대 경로다. 이 프로젝트는 저장소 루트에서 `docker build .`을 실행하므로 `COPY index.html ...`로 지정한다.
+- 바인드 마운트의 `source`는 호스트 파일 경로이고 `target`은 컨테이너 안의 경로다. 두 경로는 서로 다른 파일 시스템의 위치이므로 바꿔 쓰면 안 된다.
+- WSL에서 실행할 때는 호스트 파일을 `/mnt/c/...` 또는 저장소 기준 `$(pwd)`로 지정하고, 컨테이너 안의 경로는 `/usr/share/nginx/html/index.html`처럼 컨테이너 경로로 지정한다. 마운트 원본 파일이 실제로 존재하는지도 확인한다.
+
+실습에서 사용한 경로 연결:
+
+```bash
+--mount type=bind,source="$(pwd)/index.html",target=/usr/share/nginx/html/index.html,readonly
+```
+
+확인 결과:
+
+```text
+bind destination=/usr/share/nginx/html/index.html read-write=false
+```
+
+여기서 `$(pwd)/index.html`은 호스트의 저장소 파일이고, `/usr/share/nginx/html/index.html`은 컨테이너 안에서 NGINX가 읽는 파일이다.
