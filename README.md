@@ -911,6 +911,46 @@ ss -ltnp | grep ':8080' || true
 
 중지 뒤 Docker 포트 목록이 비었고 `ss`에서도 8080 결과가 없어 포트가 해제된 것을 확인했다. 일반 Linux 프로세스가 점유한 포트라면 `ss -ltnp 'sport = :8080'`에서 PID를 확인하고 `ps -fp <PID>`로 프로세스를 먼저 식별한다. 직접 실행한 프로그램임을 확인한 경우에만 서비스를 정상 종료하거나 `kill -TERM <PID>`를 사용한다.
 
+### WSL 프로세스의 포트 PID 확인과 정상 종료 (2026-11-17)
+
+WSL에서 임시 Python 서버를 실행해 `ss` 출력에 PID가 어떻게 표시되는지 확인했다.
+
+```text
+$ python3 -m http.server 18081 --bind 0.0.0.0 &
+Test server PID=6413
+
+$ ss -ltnp | grep ':18081'
+LISTEN 0 5 0.0.0.0:18081 0.0.0.0:* users:(("python3",pid=6413,fd=3))
+
+$ ps -fp "$PORT_TEST_PID"
+UID     PID   PPID  C STIME TTY   TIME CMD
+yiel12  6413  329   0 17:26 pts/0 00:00:00 python3 -m http.server 18081 -
+```
+
+같은 숫자 포트 18081로 Docker Desktop 컨테이너 실행도 성공했다. 이 환경에서는 WSL의 Python 리스너와 Docker Desktop의 공개 포트가 충돌하지 않았다. 따라서 서로 다른 네트워크 경계에서 포트 충돌 여부를 확인해야 한다.
+
+```bash
+kill -TERM "$PORT_TEST_PID"
+sleep 1
+ps -fp "$PORT_TEST_PID" || true
+ss -ltnp | grep ':18081' || echo 'Port 18081 is free in WSL'
+docker rm -f mission-port-conflict-18081
+```
+
+```text
+$ ps -fp "$PORT_TEST_PID"
+UID          PID    PPID  C STIME TTY          TIME CMD
+yiel12@STP7:/mnt/c/Users/Stp_7/Desktop/my-study$
+
+$ ss -ltnp | grep ':18081' || echo 'Port 18081 is free in WSL'
+Port 18081 is free in WSL
+
+$ docker rm -f mission-port-conflict-18081
+mission-port-conflict-18081
+```
+
+일반 WSL 프로세스는 `ss`의 PID를 `ps -fp <PID>`로 먼저 식별한 뒤, 내가 실행한 프로세스임을 확인하고 `kill -TERM <PID>`로 정상 종료한다. Docker가 소유한 포트라면 `docker ps --filter publish=<포트>`로 컨테이너를 찾고 `docker stop <컨테이너>`를 사용한다.
+
 ### WSL에서 Docker 명령을 찾지 못한 문제 (2026-11-17)
 
 - 문제: WSL에서 `docker info`를 실행했을 때 Docker CLI를 찾지 못했다.
